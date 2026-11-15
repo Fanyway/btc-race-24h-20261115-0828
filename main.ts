@@ -10,6 +10,9 @@
 //     every strategy that traded them lost money to the 26 bps round-trip cost.
 //   * TRIGGER: the close ticks up from the previous close (the fall is turning)
 //     while RSI(14) is still under 35 (the market is oversold, not chasing).
+//     The uptick must be the turn itself: the previous close was no higher
+//     than the one before it, so the bot never buys one bar into a recovery
+//     that is already running.
 //   * SIZE: the whole stack, one position at a time (long only, no leverage).
 //   * EXIT: take profit at +3.5% over cost, a trailing stop 1.5% below the best
 //     value the position has reached, or a hard stop at -3% under cost —
@@ -122,7 +125,10 @@ await runBars({
     const close = closes[closes.length - 1]!;
     const prev = closes[closes.length - 2]!;
     const armed = close <= high * (1 - ARM_DROP);
-    const recovering = close > prev;
+    // The uptick must be the turn itself, not a chase one bar into a recovery
+    // already running: the previous close was no higher than the one before it.
+    const prevPrev = closes[closes.length - 3]!;
+    const recovering = close > prev && prev <= prevPrev;
     if (!armed || !recovering || rsiValue >= RSI_MAX) return [];
 
     const { caps, fees } = state.hello;
