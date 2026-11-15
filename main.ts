@@ -7,24 +7,28 @@
 //
 //   * ARM: the close is at least 3.5% below the rolling 240-bar (4h) high — a real
 //     selloff, not an ordinary wiggle. Small dips are ignored: on the dev window
-//     every strategy that traded them lost money to the 26 bps round-trip cost.
+//     every strategy that traded them lost money to the 26 bps round-trip cost
+//     (a sweep of arm 1.5-3.0% and of a shallow scalp tier all ended negative,
+//     and a shallow entry can even block this one trade at the real bottom).
 //   * TRIGGER: the close ticks up from the previous close (the fall is turning)
 //     while RSI(14) is still under 35 (the market is oversold, not chasing).
 //     The uptick must be the turn itself: the previous close was no higher
 //     than the one before it, so the bot never buys one bar into a recovery
 //     that is already running.
 //   * SIZE: the whole stack, one position at a time (long only, no leverage).
-//   * EXIT: take profit at +3.5% over cost, a trailing stop 1.5% below the best
+//   * EXIT: take profit at +4.5% over cost, a trailing stop 2.0% below the best
 //     value the position has reached, or a hard stop at -3% under cost —
 //     whichever comes first. Then a 60-bar cooldown before it can re-arm, so one
 //     falling market cannot make it buy the same knife twice.
 //
 // On the dev window (24h to 2026-11-15 08:28 UTC, BTC -4.0% top to bottom) this
 // fires once: it buys the 01:41 UTC bounce off the 62,082 low and sells into the
-// recovery for about +35 USDC net of all fees, with a 0.5% max drawdown. The
-// neighbours of these parameters (arm 3.5-4%, RSI 35-40, take-profit 3-4%) all
-// catch the same trade for +31 to +38 USDC, so the result is a plateau, not a
-// single lucky setting. It is still one trade: if the race window has no selloff
+// recovery for about +47 USDC net of all fees, with a 0.5% max drawdown
+// (grade-local --driver process: +47.33 USDC, 2 trades, max drawdown 0.53%,
+// deterministic). The
+// take-profit is a plateau, not a single lucky setting: 4.5-4.9% all bank the
+// same +47 USDC (the recovery jumps through them on one bar), 4.0% banks +38
+// and 5.0% banks +25. It is still one trade: if the race window has no selloff
 // deep enough to arm it, the bot trades nothing and scores 0.
 //
 // Determinism: float64 arithmetic only, no randomness, no wall clock, no
@@ -41,8 +45,8 @@ const ARM_DROP = 0.035;
 const RSI_MAX = 35;
 const RSI_BARS = 14;
 /** Take profit, trailing stop (from the position's best value) and hard stop, as fractions of cost/value. */
-const TAKE_PROFIT = 0.035;
-const TRAIL = 0.015;
+const TAKE_PROFIT = 0.045;
+const TRAIL = 0.02;
 const STOP_LOSS = 0.03;
 /** Bars to wait after a sell before the next entry can arm. */
 const COOLDOWN_BARS = 60;
